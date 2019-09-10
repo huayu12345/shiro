@@ -27,3 +27,32 @@ Shiro 是如何工作的
 Shiro会将他的所有组件注册到SecurityManager中。
 再通过SecurityManager注册到ShiroFilterFactoryBean（这个类实现了Spring的BeanPostProcessor会预先加载）中。
 最后以filter的形式注册到Spring容器（实现了Spring的FactoryBean，构造一个filter注册到Spring容器中），实现用户权限的管理。
+
+springboot如何整合shiro:
+1、所需依赖：
+	<!-- SpringBoot中使用 Shiro 做用户、角色、权限管理 -->
+    <dependency>
+        <groupId>org.apache.shiro</groupId>
+        <artifactId>shiro-core</artifactId>
+        <version>1.4.0</version>
+    </dependency>
+    <dependency>
+        <groupId>org.apache.shiro</groupId>
+        <artifactId>shiro-spring</artifactId>
+        <version>1.4.0</version>
+    </dependency>
+2、shiroConfig（Spring项目集成Shiro的通用配置）
+（1）ShiroFilterFactoryBean：用于定义请求的拦截规则，Shiro为我们默认提供了一些项，常用如下
+    anon : 请求不拦截
+    authc：要求用户必须认证通过
+    user：要求用户为记住我状态
+    roles[xxx]：要求用户必须满足xxx角色
+    perms[xxx]：要求用户必须满足xxx权限
+（2）Realm（用于连接Shiro和客户系统的用户数据的桥梁）
+    通过实现AuthorizingRealm来提供用户认证和授权两个API
+    doGetAuthenticationInfo：认证方法，在执行subject.login(token)；后，Shiro认证器会读取Realm中的该方法获取AuthenticationInfo对象（认证信息），包含principal（我们存储在shiro subject中的对象），credentials（密码）。
+    doGetAuthorizationInfo：授权方法，在需要校验用户访问权限的时候，Shiro授权器会读取Realm中的该方法获取AuthorizationInfo对象（授权信息）读取DB后，可以通过addRoles（roleCollection）和addStringPermissions（permCollection）设置当前用户的角色和权限。Shiro在拿到这个权限信息后，会去找缓存管理器。以当前subject的principal作为key缓存起来。
+（3）CredentialsMatcher：密码匹配器，用于匹配doGetAuthenticationInfo方法返回的credentials和subject.login（token），时的token中的password是否一致。常用的实现有SimpleCredentialsMatcher（默认是该实现）、HashedCredentialsMatcher（该实现可以进行加密匹配）
+（4） DefaultWebSecurityManger：如上述，用于协调Shiro内部各种安全组件，我们需要将我们扩展的bean注册到SecurityManager中
+（5）RememberMeManager：开启该组件后使用记住服务，token中rememberMe为true时，登录成功之后会创建RememberMe cookie。
+    
