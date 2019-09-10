@@ -20,3 +20,10 @@ RBAC认为授权实际上是Who 、What 、How 三元组之间的关系，也就
 Who：是权限的拥有者或主体（如：User，Role）。
 What：是操作或对象（operation，object）。
 How：具体的权限（Privilege,正向授权与负向授权）。
+
+Shiro 是如何工作的
+简单来说，在Spring项目中
+
+Shiro会将他的所有组件注册到SecurityManager中。
+再通过SecurityManager注册到ShiroFilterFactoryBean（这个类实现了Spring的BeanPostProcessor会预先加载）中。
+最后以filter的形式注册到Spring容器（实现了Spring的FactoryBean，构造一个filter注册到Spring容器中），实现用户权限的管理。
